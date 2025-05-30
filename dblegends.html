@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dragon Ball Legends</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            margin: 0;
+            position: relative;
+            overflow-x: hidden;
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+            touch-action: manipulation;
+           
+            overflow: hidden;
+        }
+
+        body::before {
+            content: "";
+            background-image: url('https://4kwallpapers.com/images/wallpapers/goku-vs-vegeta-4480x2520-21215.jpg');
+            background-size: cover;
+            background-position: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            transform: scaleX(-1);
+            z-index: -1;
+            filter: brightness(0.7);
+        }
+
+        #startScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+        }
+
+        #characterSelection {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+        }
+
+        .title {
+            font-size: 48px;
+            margin-bottom: 30px;
+            color: #ffcc00;
+            text-shadow: 0 0 10px #ff6600, 0 0 20px #ff0000;
+            animation: glow 1.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px #ffcc00, 0 0 20px #ff6600;
+            }
+            to {
+                text-shadow: 0 0 15px #ffcc00, 0 0 30px #ff6600, 0 0 40px #ff3300;
+            }
+        }
+
+        .btn {
+            background: linear-gradient(to bottom, #ff6600, #cc3300);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            min-width: 200px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .character-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #444;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 200px;
+        }
+
+        .character-btn:hover {
+            border-color: #ffcc00;
+            transform: scale(1.05);
+        }
+
+        .character-btn img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+
+        .character-btn.selected {
+            border-color: #ff6600;
+            box-shadow: 0 0 20px #ff6600;
+            background: rgba(255, 102, 0, 0.2);
+        }
+
+        .character-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        h1 {
+            margin: 10px 0;
+            font-size: 24px;
+        }
+
+        #gameContainer {
+            max-width: 100%;
+            margin: 0 auto;
+            position: relative;
+            display: none;
+        }
+
+        #gameCanvas {
+            border: 2px solid #fff;
+            margin: 0 auto;
+            background-color: rgba(17, 17, 17, 0.5);
+            display: block;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            max-width: 100%;
+            height: auto;
+        }
+
+        .health-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px auto;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        .fighter-health {
+            width: 45%;
+            text-align: center;
+        }
+
+        .fighter-name {
+            font-weight: bold;
+            font-size: 16px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
+            margin-bottom: 5px;
+        }
+
+        .health-bar {
+            background-color: #333;
+            width: 100%;
+            height: 20px;
+            border: 2px solid #555;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .health-fill {
+            height: 100%;
+            width: 100%;
+            transition: width 0.3s;
+        }
+        
+        #gokuHealthFill {
+            background: linear-gradient(to right, #0066ff, #00ccff);
+        }
+        
+        #vegetaHealthFill {
+            background: linear-gradient(to right, #ff0000, #ffcc00);
+        }
+
+        .controls {
+            margin: 10px auto;
+            padding: 8px;
+            background-color: rgba(0, 0, 0, 0.7);
+            max-width: 600px;
+            width: 90%;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .cooldown-indicator {
+            height: 4px;
+            background-color: #444;
+            margin-top: 5px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .cooldown-fill {
+            height: 100%;
+            background-color: #00ff00;
+            width: 0%;
+            transition: width 0.1s;
+        }
+
+        .power-up-effect {
+            position: absolute;
+            pointer-events: none;
+            font-weight: bold;
+            text-shadow: 0 0 5px black;
+            animation: fadeOut 1s forwards;
+            z-index: 100;
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateY(-20px); }
+        }
+
+        @media (max-height: 700px) {
+            #gameCanvas {
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .title {
+                font-size: 32px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            .fighter-name {
+                font-size: 14px;
+            }
+            .health-bar {
+                height: 16px;
+            }
+            .controls {
+                font-size: 12px;
+                padding: 6px;
+            }
+            .btn {
+                padding: 12px 24px;
+                min-width: 160px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="startScreen">
+        <div class="title">DRAGON BALL LEGENDS</div>
+        <button class="btn" id="startBtn">START GAME</button>
+    </div>
+
+    <div id="characterSelection">
+        <div class="title">SELECT GAME MODE</div>
+        <button class="btn" id="twoPlayerBtn">TWO PLAYERS</button>
+    </div>
+
+    <div id="gameContainer">
+        <h1>Dragon Ball Legends</h1>
+        <canvas id="gameCanvas" width="600" height="450"></canvas>
+        <div id="powerUpEffects"></div>
+        <div class="health-container">
+            <div class="fighter-health">
+                <div class="fighter-name">GOKU</div>
+                <div class="health-bar">
+                    <div class="health-fill" id="gokuHealthFill"></div>
+                </div>
+                <div class="cooldown-indicator">
+                    <div class="cooldown-fill" id="gokuCooldown"></div>
+                </div>
+            </div>
+            <div class="fighter-health">
+                <div class="fighter-name">VEGETA</div>
+                <div class="health-bar">
+                    <div class="health-fill" id="vegetaHealthFill"></div>
+                </div>
+                <div class="cooldown-indicator">
+                    <div class="cooldown-fill" id="vegetaCooldown"></div>
+                </div>
+            </div>
+        </div>
+        <div class="controls">
+            <p><strong>Controls:</strong> Goku - WASD (Move), Space (Attack), Q (Kamehameha) | Vegeta - Arrows (Move), Enter (Attack), P (Galick Gun)</p>
+        </div>
+    </div>
+
+    <audio id="blastSound" src="https://assets.mixkit.co/sfx/preview/mixkit-laser-weapon-shot-1680.mp3" preload="auto"></audio>
+    <audio id="specialSound" src="https://assets.mixkit.co/sfx/preview/mixkit-energetic-strong-sci-fi-laser-789.mp3" preload="auto"></audio>
+    <audio id="powerUpSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3" preload="auto"></audio>
+    <audio id="menuSelectSound" src="https://assets.mixkit.co/sfx/preview/mixkit-quick-jump-arcade-game-239.mp3" preload="auto"></audio>
+    
+    <script>
+        let gameMode = null;
+        let soundsEnabled = false;
+
+        const startScreen = document.getElementById('startScreen');
+        const characterSelection = document.getElementById('characterSelection');
+        const gameContainer = document.getElementById('gameContainer');
+        const startBtn = document.getElementById('startBtn');
+        const twoPlayerBtn = document.getElementById('twoPlayerBtn');
+
+        startBtn.addEventListener('click', () => {
+            playSound('menuSelectSound');
+            startScreen.style.display = 'none';
+            characterSelection.style.display = 'flex';
+        });
+
+        twoPlayerBtn.addEventListener('click', () => {
+            playSound('menuSelectSound');
+            gameMode = 'twoPlayer';
+            startGame();
+        });
+
+        document.addEventListener('click', () => {
+            soundsEnabled = true;
+            const silentSound = new Audio();
+            silentSound.src = 'data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU...';
+            silentSound.play().then(() => {
+                console.log("Audio unlocked");
+            }).catch(e => {
+                console.log("Audio still locked", e);
+            });
+        });
+
+        function startGame() {
+            characterSelection.style.display = 'none';
+            gameContainer.style.display = 'block';
+            initGame();
+        }
+
+        function playSound(id) {
+            if (!soundsEnabled) return;
+            
+            const sound = document.getElementById(id);
+            sound.currentTime = 0;
+            sound.play().catch(e => console.log("Audio play failed:", e));
+        }
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            const maxWidth = Math.min(600, window.innerWidth - 40);
+            const scale = maxWidth / 600;
+            canvas.style.width = maxWidth + 'px';
+            canvas.style.height = (450 * scale) + 'px';
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const gokuImg = new Image();
+        gokuImg.src = 'https://i.pinimg.com/736x/2d/3e/5d/2d3e5d9328744959748a9c4d3af012e6.jpg';
+        const vegetaImg = new Image();
+        vegetaImg.src = 'https://i.pinimg.com/736x/ae/93/97/ae93971f44023d1430b53c1a22aee87a.jpg';
+
+        const scaleFactor = canvas.width / 800;
+        const goku = {
+            x: 100 * scaleFactor,
+            y: canvas.height / 2,
+            width: 50 * scaleFactor,
+            height: 50 * scaleFactor,
+            speed: 5 * scaleFactor,
+            health: 200,
+            maxHealth: 200,
+            color: '#0066ff'
+        };
+
+        const vegeta = {
+            x: canvas.width - 150 * scaleFactor,
+            y: canvas.height / 2,
+            width: 50 * scaleFactor,
+            height: 50 * scaleFactor,
+            speed: 5 * scaleFactor,
+            health: 200,
+            maxHealth: 200,
+            color: '#ff0000'
+        };
+
+        const blast = {
+            x: -100,
+            y: -100,
+            width: 20 * scaleFactor,
+            height: 10 * scaleFactor,
+            speed: 20 * scaleFactor,
+            direction: 1,
+            active: false
+        };
+
+        const blastVegeta = {
+            x: -100,
+            y: -100,
+            width: 20 * scaleFactor,
+            height: 10 * scaleFactor,
+            speed: 20 * scaleFactor,
+            direction: -1,
+            active: false
+        };
+
+        const specialAttacks = {
+            kamehameha: {
+                width: 100 * scaleFactor,
+                height: 30 * scaleFactor,
+                active: false,
+                cooldown: false,
+                lastUsed: 0,
+                cooldownTime: 10000
+            },
+            galickGun: {
+                width: 100 * scaleFactor,
+                height: 30 * scaleFactor,
+                active: false,
+                cooldown: false,
+                lastUsed: 0,
+                cooldownTime: 10000
+            }
+        };
+
+        const powerUps = {
+            list: [],
+            spawnRate: 0.002,
+            types: [
+                { color: '#00FF00', effect: 'health', amount: 50 },
+                { color: '#FFFF00', effect: 'speed', amount: 2, duration: 5000 }
+            ]
+        };
+
+        let keys = {};
+
+        function initGame() {
+            goku.x = 100 * scaleFactor;
+            goku.y = canvas.height / 2;
+            goku.health = goku.maxHealth;
+            vegeta.x = canvas.width - 150 * scaleFactor;
+            vegeta.y = canvas.height / 2;
+            vegeta.health = vegeta.maxHealth;
+ 
+            blast.active = false;
+            blastVegeta.active = false;
+            specialAttacks.kamehameha.active = false;
+            specialAttacks.galickGun.active = false;
+            powerUps.list = [];
+
+            updateHealthBar();
+            updateGameArea();
+        }
+
+        function updateGameArea() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+           
+            if ((keys['a'] || keys['A']) && goku.x > 0) goku.x -= goku.speed;
+            if ((keys['d'] || keys['D']) && goku.x < canvas.width - goku.width) goku.x += goku.speed;
+            if ((keys['w'] || keys['W']) && goku.y > 0) goku.y -= goku.speed;
+            if ((keys['s'] || keys['S']) && goku.y < canvas.height - goku.height) goku.y += goku.speed;
+
+        
+            if (keys['ArrowLeft'] && vegeta.x > 0) vegeta.x -= vegeta.speed;
+            if (keys['ArrowRight'] && vegeta.x < canvas.width - vegeta.width) vegeta.x += vegeta.speed;
+            if (keys['ArrowUp'] && vegeta.y > 0) vegeta.y -= vegeta.speed;
+            if (keys['ArrowDown'] && vegeta.y < canvas.height - vegeta.height) vegeta.y += vegeta.speed;
+            
+            updateProjectile(blast, vegeta);
+            updateProjectile(blastVegeta, goku);
+
+            updateSpecialAttack(specialAttacks.kamehameha, vegeta);
+            updateSpecialAttack(specialAttacks.galickGun, goku);
+
+            spawnPowerUp();
+            drawPowerUps();
+            checkPowerUpCollisions();
+
+            ctx.drawImage(gokuImg, goku.x, goku.y, goku.width, goku.height);
+            ctx.drawImage(vegetaImg, vegeta.x, vegeta.y, vegeta.width, vegeta.height);
+
+            updateCooldownIndicators();
+
+            requestAnimationFrame(updateGameArea);
+        }
+
+        function updateProjectile(projectile, target) {
+            if (projectile.active) {
+                projectile.x += projectile.speed * projectile.direction;
+                
+                if (projectile.x > canvas.width || projectile.x < 0) {
+                    projectile.active = false;
+                    projectile.x = -100;
+                }
+                
+                if (checkCollision(projectile, target)) {
+                    target.health -= 10;
+                    projectile.active = false;
+                    updateHealthBar();
+                    playSound('blastSound');
+                }
+
+                ctx.fillStyle = projectile === blast ? 'yellow' : 'orange';
+                ctx.fillRect(projectile.x, projectile.y, projectile.width, projectile.height);
+            }
+        }
+
+        function updateSpecialAttack(attack, target) {
+            if (attack.active) {
+                if (attack === specialAttacks.kamehameha) {
+                    attack.x += 15 * scaleFactor;
+                } else {
+                    attack.x -= 15 * scaleFactor;
+                }
+            
+                ctx.fillStyle = attack === specialAttacks.kamehameha 
+                    ? 'rgba(0, 200, 255, 0.8)' 
+                    : 'rgba(255, 0, 200, 0.8)';
+                ctx.fillRect(attack.x, attack.y, attack.width, attack.height);
+                
+                if (checkCollision(attack, target)) {
+                    target.health -= 30;
+                    attack.active = false;
+                    updateHealthBar();
+                    playSound('specialSound');
+                }
+
+                if ((attack === specialAttacks.kamehameha && attack.x > canvas.width) || 
+                    (attack === specialAttacks.galickGun && attack.x < -attack.width)) {
+                    attack.active = false;
+                }
+            }
+        }
+
+        function spawnPowerUp() {
+            if (Math.random() < powerUps.spawnRate && powerUps.list.length < 2) {
+                powerUps.list.push({
+                    x: Math.random() * (canvas.width - 30),
+                    y: Math.random() * (canvas.height - 30),
+                    width: 20 * scaleFactor,
+                    height: 20 * scaleFactor,
+                    ...powerUps.types[Math.floor(Math.random() * powerUps.types.length)],
+                    createdAt: Date.now()
+                });
+            }
+        }
+
+        function drawPowerUps() {
+            powerUps.list.forEach(pu => {
+                ctx.fillStyle = pu.color;
+                ctx.beginPath();
+                ctx.arc(pu.x + pu.width/2, pu.y + pu.height/2, pu.width/2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'black';
+                ctx.font = `${pu.width/2}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(pu.effect === 'health' ? '+' : '⚡', pu.x + pu.width/2, pu.y + pu.height/2);
+            });
+        }
+
+        function checkPowerUpCollisions() {
+            powerUps.list = powerUps.list.filter(pu => {
+                if (checkCollision(pu, goku)) {
+                    applyPowerUp(goku, pu);
+                    return false;
+                }
+                
+                if (checkCollision(pu, vegeta)) {
+                    applyPowerUp(vegeta, pu);
+                    return false;
+                }
+                return Date.now() - pu.createdAt < 10000;
+            });
+        }
+
+        function applyPowerUp(fighter, powerUp) {
+            playSound('powerUpSound');
+            
+            let effectText = '';
+            switch(powerUp.effect) {
+                case 'health':
+                    fighter.health = Math.min(fighter.maxHealth, fighter.health + powerUp.amount);
+                    updateHealthBar();
+                    effectText = `+${powerUp.amount} HP`;
+                    break;
+                    
+                case 'speed':
+                    const originalSpeed = fighter.speed;
+                    fighter.speed *= powerUp.amount;
+                    effectText = `Speed Boost!`;
+                    
+                    setTimeout(() => {
+                        fighter.speed = originalSpeed;
+                        showPowerUpEffect(fighter, 'Speed Normal');
+                    }, powerUp.duration);
+                    break;
+            }
+            
+            showPowerUpEffect(fighter, effectText);
+        }
+
+        function showPowerUpEffect(fighter, text) {
+            const effect = document.createElement('div');
+            effect.className = 'power-up-effect';
+            effect.textContent = text;
+            effect.style.color = text.includes('HP') ? '#00FF00' : '#FFFF00';
+            effect.style.left = `${fighter.x + (fighter.width/2)}px`;
+            effect.style.top = `${fighter.y}px`;
+            document.getElementById('powerUpEffects').appendChild(effect);
+            
+            setTimeout(() => {
+                effect.remove();
+            }, 1000);
+        }
+
+        function checkCollision(obj1, obj2) {
+            return obj1.x < obj2.x + obj2.width &&
+                   obj1.x + obj1.width > obj2.x &&
+                   obj1.y < obj2.y + obj2.height &&
+                   obj1.y + obj1.height > obj2.y;
+        }
+
+        function updateHealthBar() {
+            const gokuHealthPercentage = goku.health / goku.maxHealth;
+            const vegetaHealthPercentage = vegeta.health / vegeta.maxHealth;
+            document.getElementById('gokuHealthFill').style.width = `${gokuHealthPercentage * 100}%`;
+            document.getElementById('vegetaHealthFill').style.width = `${vegetaHealthPercentage * 100}%`;
+            
+            if (goku.health <= 0 || vegeta.health <= 0) {
+                setTimeout(() => {
+                    alert(`${goku.health <= 0 ? 'Vegeta' : 'Goku'} wins!`);
+                    resetGame();
+                }, 100);
+            }
+        }
+
+        function updateCooldownIndicators() {
+            const now = Date.now();
+            
+            const kamehamehaCooldown = specialAttacks.kamehameha;
+            if (kamehamehaCooldown.cooldown) {
+                const elapsed = now - kamehamehaCooldown.lastUsed;
+                const remaining = Math.max(0, kamehamehaCooldown.cooldownTime - elapsed);
+                const percentage = (remaining / kamehamehaCooldown.cooldownTime) * 100;
+                document.getElementById('gokuCooldown').style.width = `${100 - percentage}%`;
+            } else {
+                document.getElementById('gokuCooldown').style.width = '100%';
+            }
+            
+            const galickGunCooldown = specialAttacks.galickGun;
+            if (galickGunCooldown.cooldown) {
+                const elapsed = now - galickGunCooldown.lastUsed;
+                const remaining = Math.max(0, galickGunCooldown.cooldownTime - elapsed);
+                const percentage = (remaining / galickGunCooldown.cooldownTime) * 100;
+                document.getElementById('vegetaCooldown').style.width = `${100 - percentage}%`;
+            } else {
+                document.getElementById('vegetaCooldown').style.width = '100%';
+            }
+        }
+
+        function resetGame() {
+            gameContainer.style.display = 'none';
+            startScreen.style.display = 'flex';
+        }
+
+        
+        window.addEventListener('keydown', (e) => {
+    
+            if ([32, 37, 38, 39, 40, 65, 68, 83, 87, 81, 80].includes(e.keyCode)) {
+                e.preventDefault();
+            }
+            
+            keys[e.key] = true;
+            keys[e.keyCode] = true;
+
+
+            if ((e.key === ' ' || e.keyCode === 32) && !blast.active) {
+                blast.x = goku.x + goku.width;
+                blast.y = goku.y + goku.height / 2 - blast.height/2;
+                blast.direction = 1;
+                blast.active = true;
+                playSound('blastSound');
+            }
+            
+            if ((e.key === 'q' || e.keyCode === 81) && !specialAttacks.kamehameha.cooldown) {
+                specialAttacks.kamehameha.active = true;
+                specialAttacks.kamehameha.x = goku.x + goku.width;
+                specialAttacks.kamehameha.y = goku.y + goku.height / 2 - specialAttacks.kamehameha.height/2;
+                specialAttacks.kamehameha.cooldown = true;
+                specialAttacks.kamehameha.lastUsed = Date.now();
+                setTimeout(() => {
+                    specialAttacks.kamehameha.cooldown = false;
+                }, specialAttacks.kamehameha.cooldownTime);
+                playSound('specialSound');
+            }
+            
+            if ((e.key === 'Enter' || e.keyCode === 13) && !blastVegeta.active) {
+                blastVegeta.x = vegeta.x - blastVegeta.width;
+                blastVegeta.y = vegeta.y + vegeta.height / 2 - blastVegeta.height/2;
+                blastVegeta.direction = -1;
+                blastVegeta.active = true;
+                playSound('blastSound');
+            }
+            
+            if ((e.key === 'p' || e.keyCode === 80) && !specialAttacks.galickGun.cooldown) {
+                specialAttacks.galickGun.active = true;
+                specialAttacks.galickGun.x = vegeta.x - specialAttacks.galickGun.width;
+                specialAttacks.galickGun.y = vegeta.y + vegeta.height / 2 - specialAttacks.galickGun.height/2;
+                specialAttacks.galickGun.cooldown = true;
+                specialAttacks.galickGun.lastUsed = Date.now();
+                setTimeout(() => {
+                    specialAttacks.galickGun.cooldown = false;
+                }, specialAttacks.galickGun.cooldownTime);
+                playSound('specialSound');
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+            keys[e.keyCode] = false;
+        });
+    </script>
+</body>
+</html>
